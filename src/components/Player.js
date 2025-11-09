@@ -3,46 +3,40 @@ import React, { useEffect } from 'react';
 import { usePlayer } from './PlayerContext';
 
 export default function Player() {
-  const { audioRef, isPlaying, togglePlay, currentSong } = usePlayer();
+  const { currentSong, isPlaying, togglePlay, volume, changeVolume } = usePlayer();
 
-  // Set default volume from .env (0–1)
+  // Optional: log when the song changes (for debugging)
   useEffect(() => {
-    if (audioRef.current) {
-      const defaultVolume = parseFloat(process.env.REACT_APP_DEFAULT_VOLUME || 1);
-      audioRef.current.volume = defaultVolume;
-    }
-  }, [audioRef]);
+    if (currentSong) console.log('Now playing:', currentSong.title);
+  }, [currentSong]);
 
-  // Play/pause handling
-  useEffect(() => {
-    if (!audioRef.current) return;
-
-    const audio = audioRef.current;
-
-    if (isPlaying) {
-      const playPromise = audio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(err => {
-          console.warn('Audio play interrupted:', err);
-        });
-      }
-    } else {
-      audio.pause();
-    }
-  }, [isPlaying, currentSong, audioRef]);
+  if (!currentSong) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-gray-200 dark:bg-gray-800 p-2 flex items-center justify-between shadow-inner z-50">
-      <span className="truncate max-w-xs">{currentSong.split('/').pop()}</span>
+    <div className="fixed bottom-0 left-0 w-full bg-gray-200 dark:bg-gray-800 p-3 flex items-center justify-between shadow-inner z-50">
+      {/* Song Info */}
+      <span className="truncate max-w-xs text-sm font-medium">
+        🎵 {currentSong.title}
+      </span>
+
+      {/* Play / Pause Button */}
       <button
-        className="p-2 rounded bg-indigo-500 text-white hover:bg-indigo-600 transition-colors"
+        className="px-3 py-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition-colors text-lg"
         onClick={togglePlay}
       >
         {isPlaying ? '⏸' : '▶️'}
       </button>
-      <audio
-        ref={audioRef}
-        src={currentSong || process.env.REACT_APP_DEFAULT_SONG}
+
+      {/* Volume Control */}
+      <input
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        value={volume}
+        onChange={(e) => changeVolume(Number(e.target.value))}
+        className="w-28 accent-indigo-500 cursor-pointer"
+        title={`Volume: ${Math.round(volume * 100)}%`}
       />
     </div>
   );

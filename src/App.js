@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
-import Songs from './pages/Songs';
+import VibeRadio from './pages/VibeRadio';
 import Vibes from './pages/Vibes';
 import Discover from './pages/Discover';
 import NowPlaying from './pages/NowPlaying';
@@ -16,17 +16,19 @@ function App() {
   const [showTransition, setShowTransition] = useState(false);
   const [page, setPage] = useState('home');
 
+  // Load dark mode from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('darkMode') === 'true';
     setDarkMode(saved);
   }, []);
 
+  // Persist dark mode changes
   useEffect(() => {
     localStorage.setItem('darkMode', darkMode);
-    if (darkMode) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
+    document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
 
+  // Page navigation with transition
   const handleNavigate = (targetPage) => {
     setShowTransition(true);
     setTimeout(() => {
@@ -35,10 +37,11 @@ function App() {
     }, 500);
   };
 
+  // Render the current page
   const renderPage = () => {
     switch (page) {
       case 'home': return <Home />;
-      case 'songs': return <Songs />;
+      case 'viberadio': return <VibeRadio />;
       case 'vibes': return <Vibes />;
       case 'discover': return <Discover />;
       case 'nowplaying': return <NowPlaying />;
@@ -50,11 +53,25 @@ function App() {
   return (
     <PlayerProvider>
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+        {/* Page transition overlay */}
         {showTransition && <StaticTransition duration={500} />}
-        <Navbar darkMode={darkMode} setDarkMode={setDarkMode} onNavigate={handleNavigate} />
+
+        {/* Navbar */}
+        <Navbar
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+          onNavigate={handleNavigate}
+          currentPage={page}
+        />
+
+        {/* Main page content */}
         {renderPage()}
+
+        {/* Footer */}
         <Footer />
-        <Player />
+
+        {/* Persistent player at the bottom (except Home) */}
+        {page !== 'home' && <Player />}
       </div>
     </PlayerProvider>
   );
