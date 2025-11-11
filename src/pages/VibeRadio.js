@@ -1,6 +1,6 @@
 // ✅ src/pages/VibeRadio.js
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { usePlayer } from "../context/PlayerContext";
 import AddToPlaylistModal from "../components/modals/AddToPlaylistModal";
 import { searchTracksByMood } from "../lib/spotify";
@@ -18,49 +18,63 @@ const moods = [
 
 export default function VibeRadio() {
   const { playTrack, currentSong } = usePlayer();
+
   const [selectedMood, setSelectedMood] = useState("Chill");
-  const [playlist, setPlaylist] = useState([]);  // fetched songs
+  const [playlist, setPlaylist] = useState([]); // fetched tracks
   const [index, setIndex] = useState(0);
   const [modalTrack, setModalTrack] = useState(null);
-  const audioRef = useRef();
 
-// Fetch songs when mood changes
-useEffect(() => {
-  const load = async () => {
-    const tracks = await searchTracksByMood(selectedMood);
-    setPlaylist(tracks);
-    setIndex(0);
-    playTrack(tracks[0]);
-  };
-  load();
-}, [selectedMood, playTrack]);   // ✅ added playTrack
+  // ✅ Fetch tracks every time mood changes
+  useEffect(() => {
+    async function loadTracks() {
+      const tracks = await searchTracksByMood(selectedMood);
 
-// Auto play next track when song ends
-useEffect(() => {
-  if (!audioRef.current) return;
+      if (tracks.length > 0) {
+        setPlaylist(tracks);
+        setIndex(0);
 
-  audioRef.current.onended = () => {
-    const next = index + 1;
-    if (next < playlist.length) {
-      setIndex(next);
-      playTrack(playlist[next]);
+        // ✅ PlayerContext expects url, not previewUrl
+        playTrack({
+          id: tracks[0].id,
+          title: tracks[0].title,
+          artist: tracks[0].artist,
+          albumArt: tracks[0].albumArt,
+          url: tracks[0].previewUrl,
+        });
+      }
     }
-  };
-}, [index, playlist, playTrack]);   // ✅ added playTrack
 
+    loadTracks();
+  }, [selectedMood, playTrack]);
 
   const nextTrack = () => {
-    if (index < playlist.length - 1) {
-      setIndex(index + 1);
-      playTrack(playlist[index + 1]);
-    }
+    if (playlist.length === 0) return;
+
+    const newIndex = (index + 1) % playlist.length;
+    setIndex(newIndex);
+
+    playTrack({
+      id: playlist[newIndex].id,
+      title: playlist[newIndex].title,
+      artist: playlist[newIndex].artist,
+      albumArt: playlist[newIndex].albumArt,
+      url: playlist[newIndex].previewUrl,
+    });
   };
 
-  const previousTrack = () => {
-    if (index > 0) {
-      setIndex(index - 1);
-      playTrack(playlist[index - 1]);
-    }
+  const prevTrack = () => {
+    if (playlist.length === 0) return;
+
+    const newIndex = (index - 1 + playlist.length) % playlist.length;
+    setIndex(newIndex);
+
+    playTrack({
+      id: playlist[newIndex].id,
+      title: playlist[newIndex].title,
+      artist: playlist[newIndex].artist,
+      albumArt: playlist[newIndex].albumArt,
+      url: playlist[newIndex].previewUrl,
+    });
   };
 
   return (
@@ -75,7 +89,7 @@ useEffect(() => {
             className={`px-4 py-2 rounded-full ${
               selectedMood === m.key
                 ? "bg-indigo-600 text-white"
-                : "bg-gray-200 dark:bg-gray-700"
+                : "bg-gray-300 dark:bg-gray-700"
             }`}
             onClick={() => setSelectedMood(m.key)}
           >
@@ -89,31 +103,27 @@ useEffect(() => {
         <div className="flex flex-col items-center gap-4">
           <img
             src={currentSong.albumArt}
-            className="w-48 h-48 rounded-xl shadow-lg"
-            alt=""
+            className="w-48 h-48 rounded-xl shadow-xl"
+            alt="album"
           />
           <p className="font-semibold text-lg">{currentSong.title}</p>
           <p className="text-sm opacity-70">{currentSong.artist}</p>
         </div>
       )}
 
-      {/* Controls */}
+      {/* Radio controls */}
       <div className="flex justify-center gap-6 mt-6">
-        <button onClick={previousTrack}>
-          <SkipBack size={36} />
-        </button>
-
-        <button onClick={() => setModalTrack(currentSong)} className="text-green-500">
-          <Plus size={36} />
-        </button>
-
-        <button onClick={nextTrack}>
-          <SkipForward size={36} />
-        </button>
+        <button onClick={prevTrack}><SkipBack size={36} /></button>
+        <button onClick={() => setModalTrack(currentSong)} className="text-green-500"><Plus size={36} /></button>
+        <button onClick={nextTrack}><SkipForward size={36} /></button>
       </div>
 
+      {/* Add to playlist modal */}
       {modalTrack && (
-        <AddToPlaylistModal track={modalTrack} onClose={() => setModalTrack(null)} />
+        <AddToPlaylistModal
+          track={modalTrack}
+          onClose={() => setModalTrack(null)}
+        />
       )}
     </div>
   );

@@ -12,8 +12,8 @@ import Player from "./components/Player";
 
 // ✅ Context providers
 import { AuthProvider } from "./context/AuthContext";
-import { PlayerProvider } from "./context/PlayerContext";
 import { PlaylistProvider } from "./context/PlaylistContext";
+import { PlayerProvider } from "./context/PlayerContext";
 
 // ✅ Playlist Page (formerly Vibes.js)
 import Playlists from "./pages/Vibes";
@@ -45,27 +45,20 @@ function App() {
 
   const renderPage = () => {
     switch (page) {
-      case "home":
-        return <Home />;
-      case "viberadio":
-        return <VibeRadio />;
-      case "discover":
-        return <Discover />;
-      case "vibes":
-        return <Playlists />;
-      case "nowplaying":
-        return <NowPlaying />;
-      case "profile":
-        return <Profile />;
-      default:
-        return <Home />;
+      case "home": return <Home />;
+      case "viberadio": return <VibeRadio />;
+      case "discover": return <Discover />;
+      case "vibes": return <Playlists />;
+      case "nowplaying": return <NowPlaying />;
+      case "profile": return <Profile />;
+      default: return <Home />;
     }
   };
 
   return (
     <AuthProvider>
-      <PlayerProvider>
-        <PlaylistProvider>
+      <PlaylistProvider> {/* <-- MUST come before PlayerProvider */}
+        <PlayerProvider>
           <div className="min-h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
 
             {/* Page transition */}
@@ -85,11 +78,11 @@ function App() {
             {/* Footer */}
             <Footer />
 
-            {/* Persistent global audio player */}
+            {/* Global audio player */}
             <Player />
           </div>
-        </PlaylistProvider>
-      </PlayerProvider>
+        </PlayerProvider>
+      </PlaylistProvider>
     </AuthProvider>
   );
 }

@@ -1,68 +1,72 @@
-// ✅ src/components/modals/AddToPlaylistModal.js
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabaseClient";
+import { useAuth } from "../../context/AuthContext";
 import { usePlaylists } from "../../context/PlaylistContext";
 
 export default function AddToPlaylistModal({ track, onClose }) {
-  const { playlists, addTrackToPlaylist, addPlaylist } = usePlaylists();
+  const { user } = useAuth();
+  const { playlists, loadPlaylists, createPlaylist } = usePlaylists();
   const [newPlaylistName, setNewPlaylistName] = useState("");
 
-  const handleAddTrack = async (playlistId) => {
-    await addTrackToPlaylist(playlistId, track);
-    onClose();
-  };
+  useEffect(() => {
+    loadPlaylists();
+  }, []);
 
-  const handleCreatePlaylist = async () => {
+  async function addTrackToPlaylist(playlist_id) {
+    await supabase.from("playlist_tracks").insert({
+      playlist_id,
+      track_id: track.id,
+      title: track.title,
+      artist: track.artist,
+      albumArt: track.albumArt,
+      previewUrl: track.previewUrl,
+    });
+
+    onClose();
+  }
+
+  async function handleCreatePlaylist() {
     if (!newPlaylistName.trim()) return;
-    const playlist = await addPlaylist(newPlaylistName);
+    await createPlaylist(newPlaylistName);
     setNewPlaylistName("");
-
-    // auto add track to new playlist
-    await addTrackToPlaylist(playlist.id, track);
-    onClose();
-  };
+  }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-900 p-6 rounded-xl w-96 shadow-xl">
-
-        <h2 className="text-xl font-bold mb-4">Add to Playlist</h2>
+    <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl w-80">
+        <h2 className="text-xl font-bold mb-4">Add Track to Playlist</h2>
 
         {/* Existing playlists */}
-        <div className="max-h-40 overflow-y-auto">
-          {playlists.length === 0 ? (
-            <p className="text-gray-600 dark:text-gray-400">
-              No playlists yet — create one below.
-            </p>
-          ) : (
-            playlists.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => handleAddTrack(p.id)}
-                className="w-full text-left px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-800 mb-2 hover:bg-gray-300 dark:hover:bg-gray-700"
-              >
-                {p.name}
-              </button>
-            ))
-          )}
-        </div>
+        {playlists.length > 0 ? (
+          playlists.map((pl) => (
+            <button
+              key={pl.id}
+              className="w-full p-2 mb-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-indigo-600 hover:text-white"
+              onClick={() => addTrackToPlaylist(pl.id)}
+            >
+              {pl.name}
+            </button>
+          ))
+        ) : (
+          <p className="text-sm opacity-70 mb-2">No playlists yet.</p>
+        )}
 
-        {/* Create playlist */}
+        {/* Create new playlist */}
         <input
-          className="w-full p-2 bg-gray-100 dark:bg-gray-800 rounded mt-4"
-          placeholder="New playlist name..."
+          className="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-700 mt-4"
+          placeholder="New playlist name"
           value={newPlaylistName}
           onChange={(e) => setNewPlaylistName(e.target.value)}
         />
 
         <button
+          className="w-full mt-2 p-2 bg-green-600 text-white rounded-lg"
           onClick={handleCreatePlaylist}
-          className="mt-3 w-full p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
         >
-          + Create & Add Song
+          + Create Playlist
         </button>
 
-        <button onClick={onClose} className="mt-4 text-gray-500 underline w-full">
+        <button className="w-full mt-3 p-2 text-red-500" onClick={onClose}>
           Cancel
         </button>
       </div>
