@@ -1,25 +1,25 @@
-// src/components/Player.js
-import React, { useEffect } from 'react';
-import { usePlayer } from './PlayerContext';
+import React from 'react';
+import { usePlayer } from "../context/PlayerContext";
 
 export default function Player() {
   const { currentSong, isPlaying, togglePlay, volume, changeVolume } = usePlayer();
 
-  // Optional: log when the song changes (for debugging)
-  useEffect(() => {
-    if (currentSong) console.log('Now playing:', currentSong.title);
-  }, [currentSong]);
-
   if (!currentSong) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-gray-200 dark:bg-gray-800 p-3 flex items-center justify-between shadow-inner z-50">
-      {/* Song Info */}
-      <span className="truncate max-w-xs text-sm font-medium">
-        🎵 {currentSong.title}
-      </span>
+    <div className="fixed bottom-0 left-0 w-full bg-gray-200 dark:bg-gray-800 p-3 flex items-center justify-between shadow-lg z-50">
+      <div className="flex items-center space-x-3">
+        <img
+          src={currentSong.albumArt}
+          alt={currentSong.title}
+          className="w-10 h-10 rounded-md object-cover"
+        />
+        <div className="text-sm">
+          <p className="font-semibold">{currentSong.title}</p>
+          <p className="text-xs text-gray-500">{currentSong.artist}</p>
+        </div>
+      </div>
 
-      {/* Play / Pause Button */}
       <button
         className="px-3 py-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 transition-colors text-lg"
         onClick={togglePlay}
@@ -27,7 +27,6 @@ export default function Player() {
         {isPlaying ? '⏸' : '▶️'}
       </button>
 
-      {/* Volume Control */}
       <input
         type="range"
         min="0"
@@ -35,8 +34,7 @@ export default function Player() {
         step="0.01"
         value={volume}
         onChange={(e) => changeVolume(Number(e.target.value))}
-        className="w-28 accent-indigo-500 cursor-pointer"
-        title={`Volume: ${Math.round(volume * 100)}%`}
+        className="w-28 accent-indigo-500"
       />
     </div>
   );

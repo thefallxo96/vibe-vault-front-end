@@ -1,77 +1,120 @@
-// src/pages/Discover.js
-import React from 'react';
-import { usePlayer } from '../components/PlayerContext';
+// ✅ src/pages/VibeRadio.js
 
-export default function Discover() {
-  const { playTrack, currentSong, isPlaying } = usePlayer();
+import React, { useEffect, useState, useRef } from "react";
+import { usePlayer } from "../context/PlayerContext";
+import AddToPlaylistModal from "../components/modals/AddToPlaylistModal";
+import { searchTracksByMood } from "../lib/spotify";
+import { SkipForward, SkipBack, Plus } from "lucide-react";
 
-  const tracks = [
-    {
-      id: 1,
-      title: 'Which One',
-      artist: 'Rauw Alejandro',
-      src: 'https://example.com/audio/whichone.mp3',
-      cover: 'https://images.unsplash.com/photo-1508780709619-79562169bc64',
-    },
-    {
-      id: 2,
-      title: 'Moonlight Flow',
-      artist: 'Bad Bunny',
-      src: 'https://example.com/audio/moonlight.mp3',
-      cover: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f',
-    },
-    {
-      id: 3,
-      title: 'Midnight Vibes',
-      artist: 'Feid',
-      src: 'https://example.com/audio/midnight.mp3',
-      cover: 'https://images.unsplash.com/photo-1510626176961-4b57d4fbad03',
-    },
-  ];
+const moods = [
+  { key: "Chill", emoji: "😌" },
+  { key: "Party", emoji: "🎉" },
+  { key: "Perreo", emoji: "🍑" },
+  { key: "Hype", emoji: "🔥" },
+  { key: "Gym Time", emoji: "💪" },
+  { key: "Focus", emoji: "🧠" },
+  { key: "Romance", emoji: "💘" },
+];
+
+export default function VibeRadio() {
+  const { playTrack, currentSong } = usePlayer();
+  const [selectedMood, setSelectedMood] = useState("Chill");
+  const [playlist, setPlaylist] = useState([]);  // fetched songs
+  const [index, setIndex] = useState(0);
+  const [modalTrack, setModalTrack] = useState(null);
+  const audioRef = useRef();
+
+// Fetch songs when mood changes
+useEffect(() => {
+  const load = async () => {
+    const tracks = await searchTracksByMood(selectedMood);
+    setPlaylist(tracks);
+    setIndex(0);
+    playTrack(tracks[0]);
+  };
+  load();
+}, [selectedMood, playTrack]);   // ✅ added playTrack
+
+// Auto play next track when song ends
+useEffect(() => {
+  if (!audioRef.current) return;
+
+  audioRef.current.onended = () => {
+    const next = index + 1;
+    if (next < playlist.length) {
+      setIndex(next);
+      playTrack(playlist[next]);
+    }
+  };
+}, [index, playlist, playTrack]);   // ✅ added playTrack
+
+
+  const nextTrack = () => {
+    if (index < playlist.length - 1) {
+      setIndex(index + 1);
+      playTrack(playlist[index + 1]);
+    }
+  };
+
+  const previousTrack = () => {
+    if (index > 0) {
+      setIndex(index - 1);
+      playTrack(playlist[index - 1]);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white dark:from-gray-900 dark:to-black p-6">
-      <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-        🌎 Discover New Vibes
-      </h1>
+    <div className="p-6 text-center">
+      <h1 className="text-3xl font-bold mb-4">{selectedMood} Radio</h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {tracks.map((track) => (
-          <div
-            key={track.id}
-            className="rounded-2xl overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 bg-white dark:bg-gray-800"
+      {/* Mood selection */}
+      <div className="flex gap-2 overflow-x-auto pb-4 mb-6">
+        {moods.map((m) => (
+          <button
+            key={m.key}
+            className={`px-4 py-2 rounded-full ${
+              selectedMood === m.key
+                ? "bg-indigo-600 text-white"
+                : "bg-gray-200 dark:bg-gray-700"
+            }`}
+            onClick={() => setSelectedMood(m.key)}
           >
-            <img
-              src={track.cover}
-              alt={track.title}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4 flex flex-col items-center">
-              <h2 className="font-semibold text-lg text-gray-800 dark:text-white mb-1">
-                {track.title}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-3">
-                {track.artist}
-              </p>
-              <button
-                onClick={() =>
-                  playTrack({
-                    title: track.title,
-                    src: track.src,
-                  })
-                }
-                className={`px-4 py-2 rounded-full text-white font-medium transition-colors ${
-                  currentSong?.src === track.src && isPlaying
-                    ? 'bg-red-500 hover:bg-red-600'
-                    : 'bg-indigo-500 hover:bg-indigo-600'
-                }`}
-              >
-                {currentSong?.src === track.src && isPlaying ? '⏸ Pause' : '▶️ Play'}
-              </button>
-            </div>
-          </div>
+            {m.emoji} {m.key}
+          </button>
         ))}
       </div>
+
+      {/* Currently playing */}
+      {currentSong && (
+        <div className="flex flex-col items-center gap-4">
+          <img
+            src={currentSong.albumArt}
+            className="w-48 h-48 rounded-xl shadow-lg"
+            alt=""
+          />
+          <p className="font-semibold text-lg">{currentSong.title}</p>
+          <p className="text-sm opacity-70">{currentSong.artist}</p>
+        </div>
+      )}
+
+      {/* Controls */}
+      <div className="flex justify-center gap-6 mt-6">
+        <button onClick={previousTrack}>
+          <SkipBack size={36} />
+        </button>
+
+        <button onClick={() => setModalTrack(currentSong)} className="text-green-500">
+          <Plus size={36} />
+        </button>
+
+        <button onClick={nextTrack}>
+          <SkipForward size={36} />
+        </button>
+      </div>
+
+      {modalTrack && (
+        <AddToPlaylistModal track={modalTrack} onClose={() => setModalTrack(null)} />
+      )}
     </div>
   );
 }
