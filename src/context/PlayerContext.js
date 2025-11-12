@@ -1,4 +1,4 @@
-// src/components/PlayerContext.js
+// src/context/PlayerContext.js
 import React, { createContext, useContext, useRef, useState, useEffect } from "react";
 
 const PlayerContext = createContext();
@@ -6,61 +6,62 @@ const PlayerContext = createContext();
 export const PlayerProvider = ({ children }) => {
   const audioRef = useRef(null);
 
-const [currentSong, setCurrentSong] = useState({
+ const [currentSong, setCurrentSong] = useState({
   id: 1,
   title: "Which One (DJ Yonny Remix)",
   artist: "Drake & Central Cee",
-  albumArt: "/album-art.jpg",             // keep your cover art filename
-  url: "/which-one-dirty-remix.mp3",      // keep your audio filename
+  albumArt: "/album-art.jpg",     // ✅ make sure this file exists in /public
+  url: "/which-one-dirty-remix.mp3", // ✅ make sure this MP3 is also in /public
 });
 
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.6);
 
+  // ✅ Update audio whenever song OR volume changes
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    if (!audioRef.current || !currentSong) return;
 
-    audio.src = currentSong.url;
-    audio.volume = volume;
+    audioRef.current.src = currentSong.url;
+    audioRef.current.volume = volume;
 
-    if (isPlaying) {
-      audio.play().catch((err) => {
-        console.warn("Playback blocked until user interaction:", err);
-        setIsPlaying(false);
-      });
-    } else {
-      audio.pause();
-    }
-  }, [currentSong, isPlaying, volume]);
+    audioRef.current.play().catch((err) => {
+      console.warn("Playback blocked:", err);
+    });
+  }, [currentSong, volume]); // <-- ✅ FIXED dependencies
 
   const togglePlay = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    if (!audioRef.current) return;
 
-    if (audio.paused) {
-      audio.play()
+    if (audioRef.current.paused) {
+      audioRef.current.play()
         .then(() => setIsPlaying(true))
-        .catch((err) => console.warn("Play blocked:", err));
+        .catch(err => console.warn("Play blocked:", err));
     } else {
-      audio.pause();
+      audioRef.current.pause();
       setIsPlaying(false);
     }
   };
 
-  const changeVolume = (v) => setVolume(v);
-
   const playTrack = (track) => {
-    if (!track?.url) return;
-    setCurrentSong(track);
+    if (!track?.previewUrl && !track?.url) {
+      console.warn("⚠️ No audio found for:", track);
+      return;
+    }
+
+    setCurrentSong({
+      id: track.id,
+      title: track.title,
+      artist: track.artist,
+      albumArt: track.albumArt,
+      url: track.previewUrl ?? track.url,  // ✅ use preview first
+    });
+
     setIsPlaying(true);
   };
 
   return (
-    <PlayerContext.Provider
-      value={{ audioRef, currentSong, isPlaying, togglePlay, changeVolume, playTrack, volume }}
-    >
+    <PlayerContext.Provider value={{ audioRef, currentSong, isPlaying, togglePlay, playTrack, volume, setVolume }}>
       {children}
       <audio ref={audioRef} preload="auto" />
     </PlayerContext.Provider>

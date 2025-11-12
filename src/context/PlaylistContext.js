@@ -1,5 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { createContext, useContext, useState } from "react";
 import { useAuth } from "./AuthContext";
 
 const PlaylistContext = createContext();
@@ -9,32 +8,48 @@ export function PlaylistProvider({ children }) {
   const { user } = useAuth();
   const [playlists, setPlaylists] = useState([]);
 
+  const backend = process.env.REACT_APP_BACKEND_URL;
+
+  // ✅ Fetch playlists for logged-in user
   async function loadPlaylists() {
     if (!user) return;
-
-    const { data, error } = await supabase
-      .from("playlists")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: true });
-
-    if (!error) setPlaylists(data);
+    const res = await fetch(`${backend}/api/playlists/${user.id}`);
+    const data = await res.json();
+    setPlaylists(data);
   }
 
+  // ✅ Create playlist
   async function createPlaylist(name) {
-    if (!user) return;
+    const res = await fetch(`${backend}/api/playlists`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: user.id, name }),
+    });
 
-    const { data, error } = await supabase
-      .from("playlists")
-      .insert({ name, user_id: user.id })
-      .select()
-      .single();
+    const data = await res.json();
+    setPlaylists((prev) => [...prev, data]);
+  }
 
-    if (!error) setPlaylists([...playlists, data]);
+  // ✅ Add track to playlist
+  async function addTrackToPlaylist(playlistId, track) {
+    await fetch(`${backend}/api/playlist-tracks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        playlist_id: playlistId,
+        track_id: track.id,
+        title: track.title,
+        artist: track.artist,
+        album_art: track.albumArt,
+        preview_url: track.url,
+      }),
+    });
   }
 
   return (
-    <PlaylistContext.Provider value={{ playlists, loadPlaylists, createPlaylist }}>
+    <PlaylistContext.Provider
+      value={{ playlists, loadPlaylists, createPlaylist, addTrackToPlaylist }}
+    >
       {children}
     </PlaylistContext.Provider>
   );

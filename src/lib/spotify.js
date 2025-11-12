@@ -1,27 +1,32 @@
+// ✅ src/lib/spotify.js
+console.log("📡 Backend URL:", process.env.REACT_APP_BACKEND_URL);
+
 export async function searchTracksByMood(mood) {
   const backend = process.env.REACT_APP_BACKEND_URL;
 
-  const tokenRes = await fetch(`${backend}/api/spotify/token`); // ✅ GET
-  const { access_token } = await tokenRes.json();
+  try {
+    // 1️⃣ Ask your backend for the Spotify search results
+    const res = await fetch(`${backend}/api/spotify/search?mood=${encodeURIComponent(mood)}`);
 
-  const res = await fetch(
-    `https://api.spotify.com/v1/search?q=${encodeURIComponent(mood)}&type=track&limit=20`,
-    {
-      headers: { Authorization: `Bearer ${access_token}` },
+    if (!res.ok) {
+      console.error(`❌ Backend returned error: ${res.status}`);
+      return [];
     }
-  );
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (!data.tracks?.items) return [];
+    // 2️⃣ Verify that we got a usable playlist
+    if (!Array.isArray(data) || data.length === 0) {
+      console.warn(`⚠️ No playable tracks for mood: ${mood}`);
+      return [];
+    }
 
-  return data.tracks.items
-    .filter((track) => track.preview_url)
-    .map((track) => ({
-      id: track.id,
-      title: track.name,
-      artist: track.artists.map((a) => a.name).join(", "),
-      albumArt: track.album.images?.[0]?.url,
-      previewUrl: track.preview_url, // ✅ only preview
-    }));
+    // 3️⃣ Log for debugging
+    console.log(`🎧 Loaded ${data.length} tracks for mood: ${mood}`);
+
+    return data;
+  } catch (error) {
+    console.error("❌ searchTracksByMood ERROR:", error);
+    return [];
+  }
 }

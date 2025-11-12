@@ -1,5 +1,6 @@
+// ✅ src/components/modals/AddToPlaylistModal.js
+
 import React, { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 import { usePlaylists } from "../../context/PlaylistContext";
 
@@ -12,21 +13,28 @@ export default function AddToPlaylistModal({ track, onClose }) {
     loadPlaylists();
   }, []);
 
+  // ✅ Add a track to a playlist (via backend API)
   async function addTrackToPlaylist(playlist_id) {
-    await supabase.from("playlist_tracks").insert({
-      playlist_id,
-      track_id: track.id,
-      title: track.title,
-      artist: track.artist,
-      albumArt: track.albumArt,
-      previewUrl: track.previewUrl,
+    await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/playlist-tracks`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        playlist_id,
+        track_id: track.id,
+        title: track.title,
+        artist: track.artist,
+        album_art: track.albumArt,
+        preview_url: track.previewUrl,
+      }),
     });
 
     onClose();
   }
 
+  // ✅ Make new playlist (via backend API)
   async function handleCreatePlaylist() {
     if (!newPlaylistName.trim()) return;
+
     await createPlaylist(newPlaylistName);
     setNewPlaylistName("");
   }
