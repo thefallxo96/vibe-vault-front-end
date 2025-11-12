@@ -4,7 +4,7 @@ VibeVault is a music-driven vibe tracker that lets users authenticate through Go
 
 🚀 Live Frontend
 
-https://YOUR-FRONTEND-URL.onrender.com
+(https://vibe-vault-front-end.onrender.com)
 
 (Replace with your Render deployment URL)
 
