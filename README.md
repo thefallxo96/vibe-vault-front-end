@@ -1,70 +1,97 @@
-# Getting Started with Create React App
+VibeVault — Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+VibeVault is a music-driven vibe tracker that lets users authenticate through Google/Apple/Spotify (via Supabase + backend routing), explore music, and build their personal vibe experience. This frontend is built with React, fully connected to the VibeVault backend API.
 
-## Available Scripts
+🚀 Live Frontend
 
-In the project directory, you can run:
+https://YOUR-FRONTEND-URL.onrender.com
 
-### `npm start`
+(Replace with your Render deployment URL)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+🔗 Backend API
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+https://vibe-vault-back-end.onrender.com
 
-### `npm test`
+📦 Tech Stack
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+React
 
-### `npm run build`
+React Router
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Axios
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Vite (or CRA depending on setup)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Supabase Auth (via backend)
 
-### `npm run eject`
+Spotify / Apple Music API integration (coming soon)
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+🧩 Features
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+User login via Supabase (Google / Apple / Spotify capable)
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Fetches data from Spotify/Apple through backend routes
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Clean UI for vibes, tracks, and mood exploration
 
-## Learn More
+Responsive interface
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Future-ready for storing user vibes + tracks
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+🔧 Installation
 
-### Code Splitting
+Clone the frontend repo:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+git clone https://github.com/YOUR-USERNAME/vibevault-frontend.git
+cd vibevault-frontend
+npm install
+npm run dev
 
-### Analyzing the Bundle Size
+🔐 Environment Variables
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Create a .env file in the frontend root:
 
-### Making a Progressive Web App
+VITE_BACKEND_URL=https://vibe-vault-back-end.onrender.com
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-### Advanced Configuration
+More environment variables will be added later once Spotify/Apple are fully integrated.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+📡 API Setup
 
-### Deployment
+Use a global Axios instance:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+import axios from "axios";
 
-### `npm run build` fails to minify
+export const api = axios.create({
+  baseURL: import.meta.env.VITE_BACKEND_URL,
+});
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+🚀 Deployment on Render
+
+Push repo to GitHub
+
+Create Static Site on Render
+
+Build command:
+
+npm install && npm run build
+
+
+Publish directory:
+
+dist
+
+
+Add environment variable:
+
+VITE_BACKEND_URL=https://vibe-vault-back-end.onrender.com
+
+📸 Screenshots
+
+(Add images later)
+
+📝 License
+
+MIT License.
+
+<br>
