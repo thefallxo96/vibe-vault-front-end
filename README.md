@@ -1,4 +1,4 @@
-VibeVault — Frontend
+## VibeVault — Frontend
 
 VibeVault is a music-driven vibe tracker that lets users authenticate through Google/Apple/Spotify (via Supabase + backend routing), explore music, and build their personal vibe experience. This frontend is built with React, fully connected to the VibeVault backend API.
 
