@@ -40,7 +40,7 @@ Future-ready for storing user vibes + tracks
 
 Clone the frontend repo:
 
-git clone https://github.com/YOUR-USERNAME/vibevault-frontend.git
+git clone https://github.com/thefallxo96/vibevault-frontend.git
 cd vibevault-frontend
 npm install
 npm run dev
